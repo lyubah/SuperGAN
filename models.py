@@ -1,7 +1,8 @@
 """
-Contains models used in EMBC paper. For further applications, users can
+Contains models used in an EMBC paper. For further applications, users can
 easily add any generator or discriminator architectures that they are interested in testing.
 """
+
 from typing import Tuple
 
 import numpy as np
@@ -11,14 +12,18 @@ from keras.engine.keras_tensor import KerasTensor
 from keras.layers import Dense, LSTM, Dropout, Input, Lambda
 from keras.models import Model, Functional
 from keras.optimizers import SGD
-
-
-# CREATES DISCRIMINATOR ARCHITECTURE USED IN EMBC PAPER
 from keras.type.types import Layer
 from tensorflow import Tensor
 
 
 def create_discriminator(seq_length: int, num_channels: int) -> Functional:
+    """
+    Creates a discriminator architecture that was used in an EMBC paper.
+
+    :param seq_length: The sequence length.
+    :param num_channels: The number of channels.
+    :return: A keras Functional object that represents the discriminator.
+    """
     discriminator_input_shape: Tuple[int, int] = (seq_length, num_channels)
     discriminator_input: KerasTensor = Input(shape=discriminator_input_shape)
     discriminator: KerasTensor = Dropout(.5)(discriminator_input)
@@ -28,8 +33,15 @@ def create_discriminator(seq_length: int, num_channels: int) -> Functional:
     return discriminator
 
 
-# CREATES GENERATOR ARCHITECTURE USED IN EMBC PAPER
 def create_generator(seq_length: int, num_channels: int, latent_dim: int) -> Functional:
+    """
+    Creates a generator architecture that was used in an EMBC paper.
+
+    :param seq_length: The sequence length.
+    :param num_channels: The number of channels.
+    :param latent_dim: The number of latent dimensions.
+    :return: A keras Functional object that represents the generator.
+    """
     generator_input_shape: Tuple[int, int] = (seq_length, latent_dim)
     generator_input: KerasTensor = Input(shape=generator_input_shape)
     generator: KerasTensor = Dropout(.5)(generator_input)
@@ -40,22 +52,39 @@ def create_generator(seq_length: int, num_channels: int, latent_dim: int) -> Fun
     return generator
 
 
-# CREATE FULL NETWORK FOR COMPUTING STATISTICAL FEATURE VECTOR
-# DEFINED COMPUTE_STATS FUNCTION WITHIN HERE TO MAKE IT FLEXIBLE BASED ON SEQ LENGTH AND NUM FEATURES
-# WITHOUT CAUSING ERRORS BY PASSING NON TENSOR PARAMETERS
 def create_statistical_feature_net(seq_length: int, num_channels: int, num_features: int) -> Functional:
-    def compute_stats(input_data: np.ndarray):
+    """
+    Creates the full network for computing the statistical feature vector that
+    is defined in the compute_stats function to make it flexible based on the sequence length
+    and the number fo features without causing errors by passing non-tensor parameters.
+
+    :param seq_length: The sequence length.
+    :param num_channels: The number of channels.
+    :param num_features: The number of features.
+    :return: The statistical feature net.
+    """
+
+    def compute_stats(input_data: np.ndarray) -> Tensor:
+        """
+        Computes the stats.
+
+        :param input_data: The input data which is represented as a numpy array.
+        :return: A tensor object which contains data about the stats.
+        """
         mean: Tensor = keras_backend.mean(input_data, axis=1, keepdims=True)
         standard_deviation: Tensor = keras_backend.std(input_data, axis=1, keepdims=True)
         variance: Tensor = keras_backend.var(input_data, axis=1, keepdims=True)
-        x_max: Tensor = keras_backend.reshape(keras_backend.max(input_data, axis=1), (-1, 1, 3))
-        x_min: Tensor = keras_backend.reshape(keras_backend.min(input_data, axis=1), (-1, 1, 3))
+
+        # Zero: I think that this is where the error is, although I don't know for sure!
+        # If it breaks I can just copy-paste code from an old commit and trial error until it runs
+        x_max: Tensor = keras_backend.reshape(keras_backend.max(input_data, axis=1), (-1, 1, num_channels))
+        x_min: Tensor = keras_backend.reshape(keras_backend.min(input_data, axis=1), (-1, 1, num_channels))
         p2p: Tensor = tf.subtract(x_max, x_min)
         amp: Tensor = tf.subtract(x_max, mean)
         rms: Tensor = keras_backend.reshape(
-            keras_backend.sqrt(tf.reduce_sum(keras_backend.pow(input_data, 2), 1)), (-1, 1, 3))
+            keras_backend.sqrt(tf.reduce_sum(keras_backend.pow(input_data, 2), 1)), (-1, 1, num_channels))
         s2e: Tensor = keras_backend.reshape(
-            tf.subtract(input_data[:, seq_length - 1, :], input_data[:, 0, :]), (-1, 1, 3))
+            tf.subtract(input_data[:, seq_length - 1, :], input_data[:, 0, :]), (-1, 1, num_channels))
 
         full_vec: Tensor = keras_backend.concatenate((mean, standard_deviation))
         full_vec: Tensor = keras_backend.concatenate((full_vec, variance))
@@ -70,6 +99,12 @@ def create_statistical_feature_net(seq_length: int, num_channels: int, num_featu
         return full_vec
 
     def output_of_stat_layer(input_shape: Tuple[int, int]) -> Tuple[int, int]:
+        """
+        Gets the output of the stat layer.
+
+        :param input_shape: The shape of the input.
+        :return: The output of the stat layer as a tuple of integers (int, int).
+        """
         return input_shape[0], input_shape[1] * num_features
 
     shape: Tuple[int, int] = (seq_length, num_channels)
@@ -82,6 +117,13 @@ def create_statistical_feature_net(seq_length: int, num_channels: int, num_featu
 
 # COMPILES DISCRIMINATOR MODEL TO TRAINED IN SUPERVISED GENERATIVE FRAMEWORK
 def compile_discriminator_model(discriminator: Functional, learning_rate) -> Functional:
+    """
+    Compiles the discriminator model to be trained in a supervised generative framework.
+
+    :param discriminator: The discriminator model.
+    :param learning_rate: The learning rate
+    :return: The mutated discriminator model.
+    """
     optimizer: SGD = SGD(lr=learning_rate)
     model: Functional = Model(inputs=discriminator.input, outputs=discriminator.output)
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
