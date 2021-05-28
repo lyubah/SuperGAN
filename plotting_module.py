@@ -8,13 +8,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-# FUNCTION FOR SAVING IMAGES OF PLOTTED DATA
 def save_grid_plot(input_data: np.ndarray,
                    output_data: np.ndarray,
                    seq_length: int,
                    sampling_rate: float,
                    real: bool,
                    file_name: str) -> None:
+    """
+    A utility function for saving the images of plotted data.
+
+    :param input_data: The input data as a numpy array.
+    :param output_data: The output data as a numpy array.
+    :param seq_length: The sequence length.
+    :param sampling_rate: The sampling rate.
+    :param real: Whether or not this is real or fake.
+    :param file_name: The file name as a string.
+    :return: Nothing.
+    """
     plot = configure_plot(input_data, output_data, seq_length, sampling_rate, real)
     plot.savefig(file_name)
 
@@ -25,17 +35,36 @@ def display_grid_plot(input_data: np.ndarray,
                       seq_length: int,
                       sampling_rate: float,
                       real: bool) -> None:
+    """
+    A utility function for displaying the images of plotted data.
+
+    :param input_data: The input data as a numpy array.
+    :param output_data: The output data as a numpy array.
+    :param seq_length: The sequence length.
+    :param sampling_rate: The sampling rate.
+    :param real: Whether or not this is real or fake.
+    :return: Nothing.
+    """
     plot = configure_plot(input_data, output_data, seq_length, sampling_rate, real)
     plot.show()
 
 
-# Configures the plot, makes sure that there is as little redundancy
-# as possible in the plot code
 def configure_plot(input_data: np.ndarray,
                    output_data: np.ndarray,
                    seq_length: int,
                    sampling_rate: float,
-                   real: bool):
+                   real: bool) -> plt:
+    """
+    A helper function that configures the plot, so that there is as little
+    redundancy as possible in the plot code.
+
+    :param input_data: The input data as a numpy array.
+    :param output_data: The output data as a numpy array.
+    :param seq_length: The sequence length.
+    :param sampling_rate: The sampling rate.
+    :param real: Whether or not this is real or fake.
+    :return: A configured and mutated plot for the given data.
+    """
     hz = 1.0 / sampling_rate
     class_name = str(output_data)
     title = 'Real Data for label class {classname}'.format(classname=class_name)
