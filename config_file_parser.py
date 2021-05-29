@@ -5,7 +5,7 @@ Utilities to parse the config file.
 import configparser
 import os
 
-from data.model_data_storage import Weights, TrainingParameters, Names
+from data.model_data_storage import Weights, TrainingParameters, Names, ModelData, Empty
 
 
 class ModelConfigParser:
@@ -64,7 +64,7 @@ class ModelConfigParser:
         return os.path.exists(os.path.join(filepath, 'model.conf'))
 
     @staticmethod
-    def parse_config() -> (TrainingParameters, Weights, Names):
+    def parse_config() -> (TrainingParameters, Weights, Names, ModelData):
         """
         Parses the configuration file, and gets the relevant data.
 
@@ -116,9 +116,29 @@ class ModelConfigParser:
             classifier_name: str = key['classifier_name']
             return Names(classifier_name=classifier_name)
 
+        def parse_models(key: configparser.SectionProxy) -> ModelData:
+            """
+            Parses the models in the provided key.
+
+            :param key: A key that represents a map of models.
+            :return: A dataclass of parsed models.
+            """
+            discriminator_filename: str = key.get('discriminator_filename', None)
+            generator_filename: str = key.get('generator_filename', None)
+            directory: str = key.get('directory', None)
+
+            # return none if any of the aforementioned are none
+            if discriminator_filename is None or generator_filename is None or directory is None:
+                return Empty()
+            else:
+                return ModelData(discriminator_filename=discriminator_filename,
+                                 generator_filename=generator_filename,
+                                 directory=directory)
+
         model_parser = configparser.ConfigParser()
         model_parser.read('model.conf')
         training_parameters: TrainingParameters = parse_training_parameters(model_parser['TRAINING_PARAMETERS'])
         weights: Weights = parse_weights(model_parser['WEIGHTS'])
         names: Names = parse_names(model_parser['NAMES'])
-        return training_parameters, weights, names
+        model_data: ModelData = parse_models(model_parser['MODELS'])
+        return training_parameters, weights, names, model_data

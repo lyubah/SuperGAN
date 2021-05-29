@@ -19,11 +19,55 @@ def save_generated_data(model: Functional, epoch: int, class_label: int, save_di
     :return: Nothing, since this is a void function.
     """
     filename = f'G_epoch{epoch}_label_class{class_label}.h5'
-    filepath = os.path.join(save_directory, filename)
 
-    # verify that the path actually exists, make it if it doesn't
+    save_keras_model(model, save_directory, filename)
+
+
+def save_discriminator_data(model: Functional, epoch: int, save_directory: str) -> None:
+    """
+    Saves the discriminator data from a given keras model.
+
+
+    :param model: A keras model that contains the discriminator.
+    :param epoch: The current "iteration" that the model's generated data corresponds to.
+    :param save_directory: The directory that all of this data should be saved.
+    :return: Nothing, since this is a void function.
+    """
+    filename = f'D_epoch{epoch}.h5'
+
+    save_keras_model(model, save_directory, filename)
+
+
+def save_classifier_data(model: Functional, epoch: int, save_directory: str) -> None:
+    """
+        Saves the classifier data from a given keras model.
+
+
+        :param model: A keras model that contains the discriminator.
+        :param epoch: The current "iteration" that the model's generated data corresponds to.
+        :param save_directory: The directory that all of this data should be saved.
+        :return: Nothing, since this is a void function.
+        """
+    filename = f'C_epoch{epoch}.h5'
+
+    save_keras_model(model, save_directory, filename)
+
+
+def save_keras_model(model: Functional, save_directory: str, filename: str) -> None:
+    """
+    Save a keras model to a given directory
+
+    :param model: A keras model to be saved.
+    :param save_directory: The directory that all of this data should be saved.
+    :param filename: The name of a file.
+    :return: Nothing.
+    """
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
+    filepath = os.path.join(save_directory, filename)
+
+    # Zero: There is a warning here (not an error, saving works) and it is weird,
+    # having trouble figuring it out!
     model.save(filepath)
 
 
