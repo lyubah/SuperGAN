@@ -9,7 +9,11 @@ import numpy as np
 from keras.models import Functional
 
 
-def save_generated_data(model: Functional, epoch: int, class_label: int, save_directory: str) -> None:
+def save_generated_data(model: Functional,
+                        epoch: int,
+                        class_label: int,
+                        save_directory: str,
+                        accuracy: float) -> None:
     """
     Saves the generated data from a given keras model.
 
@@ -17,14 +21,19 @@ def save_generated_data(model: Functional, epoch: int, class_label: int, save_di
     :param epoch: The current "iteration" that the model's generated data corresponds to.
     :param class_label: The class label that is being used.
     :param save_directory: The directory that all of this data should be saved.
+    :param accuracy: The classifier accuracy.
     :return: Nothing, since this is a void function.
     """
-    filename = f'G_epoch{epoch}_label_class{class_label}.h5'
+    filename = f'G_epoch{epoch}_label_class{class_label}_acc{int(accuracy * 100)}.h5'
 
     save_keras_model(model, save_directory, filename)
 
 
-def save_discriminator_data(model: Functional, epoch: int, class_label: int, save_directory: str) -> None:
+def save_discriminator_data(model: Functional,
+                            epoch: int,
+                            class_label: int,
+                            save_directory: str,
+                            accuracy: float) -> None:
     """
     Saves the discriminator data from a given keras model.
 
@@ -33,24 +42,10 @@ def save_discriminator_data(model: Functional, epoch: int, class_label: int, sav
     :param model: A keras model that contains the discriminator.
     :param epoch: The current "iteration" that the model's generated data corresponds to.
     :param save_directory: The directory that all of this data should be saved.
+    :param accuracy: The classifier accuracy.
     :return: Nothing, since this is a void function.
     """
-    filename = f'D_epoch{epoch}_label_class{class_label}.h5'
-
-    save_keras_model(model, save_directory, filename)
-
-
-def save_classifier_data(model: Functional, epoch: int, save_directory: str) -> None:
-    """
-        Saves the classifier data from a given keras model.
-
-
-        :param model: A keras model that contains the discriminator.
-        :param epoch: The current "iteration" that the model's generated data corresponds to.
-        :param save_directory: The directory that all of this data should be saved.
-        :return: Nothing, since this is a void function.
-        """
-    filename = f'C_epoch{epoch}.h5'
+    filename = f'D_epoch{epoch}_label_class{class_label}_acc{int(accuracy * 100)}.h5'
 
     save_keras_model(model, save_directory, filename)
 
@@ -73,13 +68,14 @@ def save_keras_model(model: Functional, save_directory: str, filename: str) -> N
     model.save(filepath)
 
 
-def save_data_sample(data: np.ndarray, iteration: int, class_label: int) -> None:
+def save_data_sample(data: np.ndarray, iteration: int, class_label: int, accuracy: float) -> None:
     """
     Saves data samples.
 
     :param data: The data to be saved.
     :param iteration: The iteration of the data save.
     :param class_label: The class label, indicates the filtered value.
+    :param accuracy: The classifier accuracy of the given data.
     :return: Nothing, void function.
     """
     folder_name = 'synthetic_samples'

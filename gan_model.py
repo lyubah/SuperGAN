@@ -37,7 +37,8 @@ class GanModel:
                  weight: Weights,
                  name: Names,
                  model_data: ModelData,
-                 config: str):
+                 config: str,
+                 load_pretrained: bool = False):
         """
         Constructs a new GAN model from the given training parameters, weights, and names.
 
@@ -77,7 +78,7 @@ class GanModel:
             # create the generator
             self.generator = self._create_generator()
             self.discriminator = self._create_discriminator()
-        else:
+        elif load_pretrained:
             self.generator, self.discriminator = self._load_pretrained_model(
                 generator_path=model_data.generator_filename,
                 discriminator_path=model_data.discriminator_filename,
@@ -251,18 +252,24 @@ class GanModel:
         synthetic_features = self.feature_net.predict(syn_data, self.training_parameters.test_size, verbose=0)
         return train.compute_statistical_feature_distance(synthetic_features, self.synthetic_data_test)
 
-    def save_model_to_directory(self, current_epoch: int) -> None:
+    def save_model_to_directory(self, current_epoch: int, accuracy: float) -> None:
         """
         Saves the model to a directory.
 
         :param current_epoch: The current epoch.
+        :param accuracy: The accuracy of the classifier.
         :return: Nothing, since this function is a void function.
         """
-        save.save_generated_data(self.generator, current_epoch, self.class_label, self.model_save_directory)
+        save.save_generated_data(self.generator,
+                                 current_epoch,
+                                 self.class_label,
+                                 self.model_save_directory,
+                                 accuracy)
         save.save_discriminator_data(self.discriminator,
                                      current_epoch,
                                      self.class_label,
-                                     self.model_save_directory)
+                                     self.model_save_directory,
+                                     accuracy)
 
     def write_training_results(self,
                                current_epoch: int,

@@ -38,14 +38,11 @@ def generate_data_samples(arguments: Namespace, gan_model: GanModel):
     for i in range(arguments.count):
         # compute the performance metrics
         synthetic_data, generator_classifier_accuracy = gan_model.generate_synthetic_data()
-        saving_module.save_data_sample(synthetic_data, i + 1, gan_model.class_label)
+        saving_module.save_data_sample(synthetic_data, i + 1, gan_model.class_label, generator_classifier_accuracy)
 
 
 def compute_performance_metrics(gan_model: GanModel) -> \
         Tuple[ndarray, ndarray, ndarray, float]:
-    # the user feels like a hacker, but we
-    # have to remind them that they are a 90's hacker
-
     # GENERATE SYNTHETIC DATA AND GET CLASSIFIER ACCURACY
     synthetic_data, generator_classifier_accuracy = gan_model.generate_synthetic_data()
     print(f'Classifier accuracy for synthetic data: {generator_classifier_accuracy}')
@@ -65,7 +62,7 @@ def compute_performance_metrics(gan_model: GanModel) -> \
 
 
 def train_model(arguments: Namespace, gan_model: GanModel):
-    # set the generator accuracy and step
+    # set the generator classifier accuracy and step
     generator_classifier_accuracy = 0
     epoch = 1
     while generator_classifier_accuracy < gan_model.training_parameters.accuracy_threshold:
@@ -83,7 +80,8 @@ def train_model(arguments: Namespace, gan_model: GanModel):
         print(f'Generator accuracy in tricking the discriminator: {gen_discriminator_acc}')
 
         # compute performance metrics
-        synthetic_data, mean_RTS_sim, mean_STS_sim, generator_classifier_accuracy = compute_performance_metrics(gan_model)
+        synthetic_data, mean_RTS_sim, mean_STS_sim, generator_classifier_accuracy \
+            = compute_performance_metrics(gan_model)
 
         # continue the aforesaid sorcery
         print(Fore.GREEN)
@@ -102,7 +100,7 @@ def train_model(arguments: Namespace, gan_model: GanModel):
         epoch += 1
 
     if gan_model.request_save or arguments.save:
-        gan_model.save_model_to_directory(current_epoch=epoch)
+        gan_model.save_model_to_directory(current_epoch=epoch, accuracy=generator_classifier_accuracy)
 
     # end the foolishness
     print(Fore.RESET)
@@ -116,7 +114,7 @@ def main():
 
     # obtain relevant data from the .conf file and create GAN model
     training_parameters, weights, names, model_data = config_file_parser.ModelConfigParser().parse_config()
-    gan_model = GanModel(training_parameters, weights, names, model_data, args.config)
+    gan_model = GanModel(training_parameters, weights, names, model_data, args.config, args.load)
 
     if args.load:
         compute_performance_metrics(gan_model)
