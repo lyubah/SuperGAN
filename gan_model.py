@@ -55,11 +55,11 @@ class GanModel:
         self.class_label = input_file_config.class_label
         self.model_save_directory = input_file_config.save_directory
         self.request_save = input_file_config.request_save
+        self.write_train_results = input_file_config.write_train_results
 
         y: ndarray
         y_onehot: ndarray
         self.input_data, y, y_onehot = input_module.load_data(input_file_config.data_file_path, self.class_label)
-        self.write_train_results = False
 
         # load the pre-trained classifier (note that we are not preparing it for training by compiling it)
         self.classifier = load_model(input_file_config.classifier_path, compile=False)
@@ -73,17 +73,17 @@ class GanModel:
         self.num_classes = y_onehot.shape[1]
 
         # check whether or not there are models requested in the config file
-        if isinstance(model_data, Empty):
+        if isinstance(model_data, Empty) or not model_data.exists:
             # create the generator
             self.generator = self._create_generator()
-            # create the discriminator
-            self.discriminator = self._create_discriminator()
         else:
-            self.generator, self.discriminator = self.load_pretrained_model(
+            self.generator = self._load_pretrained_model(
                 generator_path=model_data.generator_filename,
-                discriminator_path=model_data.discriminator_filename,
                 directory=model_data.directory)
+            print(self.discriminator.input_shape)
 
+        # create the discriminator
+        self.discriminator = self._create_discriminator()
         discriminator_to_freeze: Functional = self.discriminator
         self.discriminator_model = models \
             .compile_discriminator_model(discriminator=self.discriminator,
@@ -221,9 +221,11 @@ class GanModel:
                                                           generator=self.generator,
                                                           latent_dim=self.training_parameters.latent_dimension,
                                                           time_steps=self.seq_length)
+
         pred: ndarray = np.argmax(self.classifier.predict(syn_data), axis=-1)
         true: list = [self.class_label] * self.training_parameters.test_size
         gen_class_acc: float = accuracy_score(true, pred)
+
         return syn_data, gen_class_acc
 
     def compute_rts_sts(self, syn_data: ndarray) -> Tuple[ndarray, ndarray]:
@@ -251,7 +253,7 @@ class GanModel:
         synthetic_features = self.feature_net.predict(syn_data, self.training_parameters.test_size, verbose=0)
         return train.compute_statistical_feature_distance(synthetic_features, self.synthetic_data_test)
 
-    def _save_model_to_directory(self, current_epoch: int) -> None:
+    def save_model_to_directory(self, current_epoch: int) -> None:
         """
         Saves the model to a directory.
 
@@ -261,13 +263,13 @@ class GanModel:
         save.save_generated_data(self.generator, current_epoch, self.class_label, self.model_save_directory)
         save.save_discriminator_data(self.discriminator_model, current_epoch, self.model_save_directory)
 
-    def _write_train_results(self,
-                             current_epoch: int,
-                             discriminator_accuracy: np.float,
-                             generator_discriminator_acc: np.float,
-                             generator_classifier_acc: np.float,
-                             mean_rts_similarity: ndarray,
-                             mean_sts_similarity: ndarray) -> None:
+    def write_training_results(self,
+                               current_epoch: int,
+                               discriminator_accuracy: np.float,
+                               generator_discriminator_acc: np.float,
+                               generator_classifier_acc: np.float,
+                               mean_rts_similarity: ndarray,
+                               mean_sts_similarity: ndarray) -> None:
         """
         Writes the training results.
 
@@ -288,49 +290,16 @@ class GanModel:
                            mean_rts_similarity,
                            mean_sts_similarity)
 
-    def save_write_handler(self,
-                           current_epoch: int,
-                           discriminator_accuracy: np.float,
-                           generator_discriminator_acc: np.float,
-                           generator_classifier_acc: np.float,
-                           mean_rts_similarity: ndarray,
-                           mean_sts_similarity: ndarray,
-                           save_file: bool = False) -> None:
-        """
-        This is basically a handler which determines whether to write the results to a file
-
-        :param current_epoch: The current epoch.
-        :param discriminator_accuracy: The accuracy of the discriminator.
-        :param generator_discriminator_acc: The generator discriminator accuracy.
-        :param generator_classifier_acc: The generator classifier accuracy.
-        :param mean_rts_similarity: The mean rts similarity.
-        :param mean_sts_similarity: The mean sts similarity.
-        :param save_file: Whether or not the file should be saved
-        :return: Nothing.
-        """
-        if self.request_save or save_file:
-            self._save_model_to_directory(current_epoch)
-        if self.write_train_results:
-            self._write_train_results(current_epoch,
-                                      discriminator_accuracy,
-                                      generator_discriminator_acc,
-                                      generator_classifier_acc,
-                                      mean_rts_similarity,
-                                      mean_sts_similarity)
-
     @staticmethod
-    def load_pretrained_model(generator_path: str,
-                              discriminator_path: str,
-                              directory: str) -> Tuple[Functional, Functional]:
+    def _load_pretrained_model(generator_path: str,
+                               directory: str) -> Functional:
         """
         Loads a pre-trained model.
 
-        :return: A trained keras model.
+        :return: Nothing.
         """
         generator_file_path = os.path.join(directory, generator_path)
-        discriminator_file_path = os.path.join(directory, discriminator_path)
-
-        return load_model(generator_file_path), load_model(discriminator_file_path)
+        return load_model(generator_file_path)
 
     def compute_one_segment_real(self) -> ndarray:
         """
@@ -340,4 +309,3 @@ class GanModel:
         """
         return np.reshape(self.input_data[np.random.randint(0, self.input_data.shape[0], 1)],
                           (self.seq_length, self.num_channels))
-

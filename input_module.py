@@ -17,6 +17,7 @@ class InputModuleConfiguration:
     data_file_path: str = None
     classifier_path: str = None
     class_label: int = 0
+    write_train_results: bool = False
 
     def __init__(self):
         pass
@@ -85,6 +86,8 @@ def load_data(filepath_data: str, class_label: int) -> Tuple[np.ndarray, np.ndar
     with h5py.File(filepath_data, mode='r') as h5_file:
         h5_file_keys = h5_file.keys()
 
+        print(h5_file_keys)
+
         # verify that the keys are all valid
         if 'X' not in h5_file_keys or 'y' not in h5_file_keys or 'y_onehot' not in h5_file_keys:
             raise IOError
@@ -98,4 +101,5 @@ def load_data(filepath_data: str, class_label: int) -> Tuple[np.ndarray, np.ndar
         input_data, output_data, output_data_onehot = load_class_data(input_data,
                                                                       output_data,
                                                                       output_data_onehot)
+
     return input_data, output_data, output_data_onehot

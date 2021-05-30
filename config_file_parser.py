@@ -126,6 +126,9 @@ class ModelConfigParser:
             discriminator_filename: str = key.get('discriminator_filename', None)
             generator_filename: str = key.get('generator_filename', None)
             directory: str = key.get('directory', None)
+            exists: bool = False
+            if key.get('exists', 'False') == 'True':
+                exists = True
 
             # return none if any of the aforementioned are none
             if discriminator_filename is None or generator_filename is None or directory is None:
@@ -133,7 +136,8 @@ class ModelConfigParser:
             else:
                 return ModelData(discriminator_filename=discriminator_filename,
                                  generator_filename=generator_filename,
-                                 directory=directory)
+                                 directory=directory,
+                                 exists=exists)
 
         model_parser = configparser.ConfigParser()
         model_parser.read('model.conf')
