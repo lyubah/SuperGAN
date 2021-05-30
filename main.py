@@ -1,8 +1,7 @@
 """
 Main file where generator training and metric calculations take place.
 """
-import argparse
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 from typing import Tuple
 
 from colorama import Fore
@@ -19,15 +18,16 @@ def parse_command_line_args() -> Namespace:
 
     :return:
     """
-    parser = argparse.ArgumentParser(description='''
+    parser = ArgumentParser(description='''
                                                         SuperGAN utilizes a Generative Adversarial
                                                         Network (GAN) to produce synthetic data 
                                                         similar to real data.
                                                         ''',
-                                     epilog='Thanks for using our program. Cheers!')
+                            epilog='Thanks for using our program. Cheers!')
     parser.add_argument('-s', '--save', action='store_true', help='Save the current state of a trained GAN')
     parser.add_argument('-S', '--save_samples', action='store_true', help='Save samples of data')
-    parser.add_argument('-l', '--load', type=str, help='Load a pre-trained GAN model, and generate a number of sample')
+    parser.add_argument('-l', '--load', action='store_true',
+                        help='Load a pre-trained GAN model, and generate a number of sample')
     parser.add_argument('-c', '--count', type=int, help='The number of samples to generate', default=5)
     parser.add_argument('config', type=str, help='The .toml configuration file that needs to be loaded')
     return parser.parse_args()
@@ -110,6 +110,8 @@ def train_model(arguments: Namespace, gan_model: GanModel):
 
         if arguments.save_samples:
             generate_data_samples(arguments, gan_model)
+
+        epoch += 1
 
     if gan_model.request_save or arguments.save:
         gan_model.save_model_to_directory(current_epoch=epoch)

@@ -76,14 +76,15 @@ class GanModel:
         if isinstance(model_data, Empty) or not model_data.exists:
             # create the generator
             self.generator = self._create_generator()
+            self.discriminator = self._create_discriminator()
         else:
-            self.generator = self._load_pretrained_model(
+            self.generator, self.discriminator = self._load_pretrained_model(
                 generator_path=model_data.generator_filename,
+                discriminator_path=model_data.discriminator_filename,
                 directory=model_data.directory)
             print(self.discriminator.input_shape)
 
         # create the discriminator
-        self.discriminator = self._create_discriminator()
         discriminator_to_freeze: Functional = self.discriminator
         self.discriminator_model = models \
             .compile_discriminator_model(discriminator=self.discriminator,
@@ -261,7 +262,7 @@ class GanModel:
         :return: Nothing, since this function is a void function.
         """
         save.save_generated_data(self.generator, current_epoch, self.class_label, self.model_save_directory)
-        save.save_discriminator_data(self.discriminator_model,
+        save.save_discriminator_data(self.discriminator,
                                      current_epoch,
                                      self.class_label,
                                      self.model_save_directory)
@@ -295,6 +296,7 @@ class GanModel:
 
     @staticmethod
     def _load_pretrained_model(generator_path: str,
+                               discriminator_path: str,
                                directory: str) -> Functional:
         """
         Loads a pre-trained model.
@@ -302,7 +304,8 @@ class GanModel:
         :return: Nothing.
         """
         generator_file_path = os.path.join(directory, generator_path)
-        return load_model(generator_file_path)
+        discriminator_file_path = os.path.join(directory, discriminator_path)
+        return load_model(generator_file_path), load_model(discriminator_file_path)
 
     def compute_one_segment_real(self) -> ndarray:
         """
