@@ -33,27 +33,18 @@ def parse_command_line_args() -> Namespace:
     return parser.parse_args()
 
 
-def generate_data_samples(arguments: Namespace, gan_model: GanModel, count=1):
-    # compute the performance metrics
-    compute_performance_metrics(gan_model)
-
-    if count != 1:
-        iterations = arguments.count
-    else:
-        iterations = count
-
+def generate_data_samples(arguments: Namespace, gan_model: GanModel):
     # save a given number of samples
-    for i in range(iterations):
+    for i in range(arguments.count):
         # compute the performance metrics
         synthetic_data, generator_classifier_accuracy = gan_model.generate_synthetic_data()
         saving_module.save_data_sample(synthetic_data, i + 1, gan_model.class_label)
 
 
 def compute_performance_metrics(gan_model: GanModel) -> \
-        Tuple[ndarray, ndarray, ndarray]:
+        Tuple[ndarray, ndarray, ndarray, float]:
     # the user feels like a hacker, but we
     # have to remind them that they are a 90's hacker
-    print(Fore.MAGENTA)
 
     # GENERATE SYNTHETIC DATA AND GET CLASSIFIER ACCURACY
     synthetic_data, generator_classifier_accuracy = gan_model.generate_synthetic_data()
@@ -70,7 +61,7 @@ def compute_performance_metrics(gan_model: GanModel) -> \
     # not entirely sure why this is being computed, but maybe its important
     one_segment_real = gan_model.compute_one_segment_real()
 
-    return synthetic_data, mean_RTS_sim, mean_STS_sim
+    return synthetic_data, mean_RTS_sim, mean_STS_sim, generator_classifier_accuracy
 
 
 def train_model(arguments: Namespace, gan_model: GanModel):
@@ -92,7 +83,7 @@ def train_model(arguments: Namespace, gan_model: GanModel):
         print(f'Generator accuracy in tricking the discriminator: {gen_discriminator_acc}')
 
         # compute performance metrics
-        synthetic_data, mean_RTS_sim, mean_STS_sim = compute_performance_metrics(gan_model)
+        synthetic_data, mean_RTS_sim, mean_STS_sim, generator_classifier_accuracy = compute_performance_metrics(gan_model)
 
         # continue the aforesaid sorcery
         print(Fore.GREEN)
@@ -107,9 +98,6 @@ def train_model(arguments: Namespace, gan_model: GanModel):
                                              generator_classifier_acc=generator_classifier_accuracy,
                                              mean_rts_similarity=mean_RTS_sim,
                                              mean_sts_similarity=mean_STS_sim)
-
-        if arguments.save_samples:
-            generate_data_samples(arguments, gan_model)
 
         epoch += 1
 
@@ -131,9 +119,12 @@ def main():
     gan_model = GanModel(training_parameters, weights, names, model_data, args.config)
 
     if args.load:
-        generate_data_samples(args, gan_model)
+        compute_performance_metrics(gan_model)
     else:
         train_model(args, gan_model)
+
+    if args.save_samples:
+        generate_data_samples(args, gan_model)
 
 
 if __name__ == '__main__':

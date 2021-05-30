@@ -82,10 +82,7 @@ class GanModel:
                 generator_path=model_data.generator_filename,
                 discriminator_path=model_data.discriminator_filename,
                 directory=model_data.directory)
-            print(self.discriminator.input_shape)
 
-        # create the discriminator
-        discriminator_to_freeze: Functional = self.discriminator
         self.discriminator_model = models \
             .compile_discriminator_model(discriminator=self.discriminator,
                                          learning_rate=training_param.discriminator_learning_rate)
@@ -95,7 +92,7 @@ class GanModel:
         self.feature_net = self._create_feature_net()
         self.synthetic_data_train = self._train_synthetic_data()
         self.synthetic_data_test = self._test_generated_data()
-        self._create_architecture(discriminator_to_freeze=discriminator_to_freeze)
+        self._create_architecture(discriminator_to_freeze=self.discriminator)
 
     def _create_generator(self) -> Functional:
         """
@@ -297,7 +294,7 @@ class GanModel:
     @staticmethod
     def _load_pretrained_model(generator_path: str,
                                discriminator_path: str,
-                               directory: str) -> Functional:
+                               directory: str) -> Tuple[Functional, Functional]:
         """
         Loads a pre-trained model.
 

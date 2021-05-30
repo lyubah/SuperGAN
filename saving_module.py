@@ -114,6 +114,10 @@ def write_results(epoch: int, class_label: int, discriminator_accuracy: float, g
     """
     filename = f'Results_label_class_{class_label}.csv'
 
+    # make sure that we aren't appending to the last one
+    if epoch == 1 and os.path.exists(filename):
+        os.remove(filename)
+
     header = 'Epoch,Disc_acc,GenDisc_acc,GenClass_acc,mean_RTS_sim,mean_STS_sim\n'
     to_write = f'{epoch},{discriminator_accuracy},{generator_discriminator_accuracy},{generator_class_accuracy},' \
                f'{mean_rts_sim},{mean_sts_sim}\n'
