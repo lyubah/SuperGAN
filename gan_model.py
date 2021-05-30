@@ -261,7 +261,10 @@ class GanModel:
         :return: Nothing, since this function is a void function.
         """
         save.save_generated_data(self.generator, current_epoch, self.class_label, self.model_save_directory)
-        save.save_discriminator_data(self.discriminator_model, current_epoch, self.model_save_directory)
+        save.save_discriminator_data(self.discriminator_model,
+                                     current_epoch,
+                                     self.class_label,
+                                     self.model_save_directory)
 
     def write_training_results(self,
                                current_epoch: int,
