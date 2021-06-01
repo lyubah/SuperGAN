@@ -115,7 +115,6 @@ def create_statistical_feature_net(seq_length: int, num_channels: int, num_featu
     return model
 
 
-# COMPILES DISCRIMINATOR MODEL TO TRAINED IN SUPERVISED GENERATIVE FRAMEWORK
 def compile_discriminator_model(discriminator: Functional, learning_rate) -> Functional:
     """
     Compiles the discriminator model to be trained in a supervised generative framework.
@@ -124,7 +123,7 @@ def compile_discriminator_model(discriminator: Functional, learning_rate) -> Fun
     :param learning_rate: The learning rate
     :return: The mutated discriminator model.
     """
-    optimizer: SGD = SGD(lr=learning_rate)
+    optimizer: SGD = SGD(learning_rate=learning_rate)
     model: Functional = Model(inputs=discriminator.input, outputs=discriminator.output)
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     model.summary()

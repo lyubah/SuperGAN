@@ -37,3 +37,17 @@ class Names:
     Class for keeping track of names.
     """
     classifier_name: str
+
+
+@dataclass(frozen=True)
+class ModelData:
+    discriminator_filename: str
+    generator_filename: str
+    directory: str
+    exists: bool
+
+
+class Empty(ModelData):
+
+    def __init__(self):
+        pass

@@ -1,4 +1,5 @@
 # file data
 data_file_path = "sports_data_segmented.h5"
-classifier_path = "LSTM_classifier.h5"
+classifier_path = "ConvLSTM_classifier.h5"
 class_label = 0
+write_train_results = true

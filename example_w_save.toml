@@ -3,3 +3,4 @@ data_file_path = "sports_data_segmented.h5"
 classifier_path = "LSTM_classifier.h5"
 class_label = 0
 request_save = true
+write_train_results = true
