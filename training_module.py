@@ -12,6 +12,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 from tensorflow import Tensor
 
 
+def null_loss(_actual_output_data: Tensor, _expected_output_data: Tensor) -> Tensor:
+    """
+    Utility function used for where a loss function is deleted by configuration.
+    Both parameters are ignored.
+    """
+    return 0.0
+
+
 def euc_dist_loss(actual_output_data: Tensor, expected_output_data: Tensor) -> Tensor:
     """
     Utility function that computes the euclidean distance (SFD) loss

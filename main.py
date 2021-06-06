@@ -28,6 +28,8 @@ def parse_command_line_args() -> Namespace:
     parser.add_argument('-S', '--save_samples', action='store_true', help='Save samples of data')
     parser.add_argument('-l', '--load', action='store_true',
                         help='Load a pre-trained GAN model, and generate a number of sample')
+    parser.add_argument('-C', '--ignore_classifier', action='store_true', help="Don't use classifier for training Generator")
+    parser.add_argument('-R', '--ignore_regularization', action='store_true', help="Don't use SFD regularization for training Generator")
     parser.add_argument('-c', '--count', type=int, help='The number of samples to generate', default=5)
     parser.add_argument('config', type=str, help='The .toml configuration file that needs to be loaded')
     return parser.parse_args()
@@ -114,7 +116,11 @@ def main():
 
     # obtain relevant data from the .conf file and create GAN model
     training_parameters, weights, names, model_data = config_file_parser.ModelConfigParser().parse_config()
-    gan_model = GanModel(training_parameters, weights, names, model_data, args.config, args.load)
+    gan_model = GanModel(training_parameters,
+                         weights, names, model_data,
+                         args.config, args.load,
+                         args.ignore_classifier,
+                         args.ignore_regularization)
 
     if args.load:
         compute_performance_metrics(gan_model)

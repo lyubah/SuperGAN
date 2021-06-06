@@ -38,7 +38,9 @@ class GanModel:
                  name: Names,
                  model_data: ModelData,
                  config: str,
-                 load_pretrained: bool = False):
+                 load_pretrained: bool = False,
+                 ignore_classifier: bool = False,
+                 ignore_sfd: bool = False):
         """
         Constructs a new GAN model from the given training parameters, weights, and names.
 
@@ -46,10 +48,15 @@ class GanModel:
         :param weight: The weights.
         :param name: The name.
         :param config: The configuration file.
+        :param load_pretrained: Whether to use a pretrained GAN
+        :param ignore_classifier: Whether to ignore the effect of the classifier in training the GAN
+        :param ignore_sfd: Whether to ignore the effect of SFD regularization in training the GAN
         """
         self.training_parameters = training_param
         self.weights: Weights = weight
         self.names: Names = name
+        self.ignore_classifier: bool = ignore_classifier
+        self.ignore_sfd: bool = ignore_sfd
 
         # grab the file data and relevant information
         input_file_config: InputModuleConfiguration = input_module.parse_input_file(config)
@@ -168,12 +175,20 @@ class GanModel:
         for discriminator_layer in discriminator_to_freeze.layers:
             discriminator_layer.trainable = False
 
+        model_loss: dict = {'D': 'binary_crossentropy', 'C': 'categorical_crossentropy', 'SFN': train.euc_dist_loss}
+
+        if self.ignore_classifier:
+            model_loss['C'] = train.null_loss
+
+        if self.ignore_sfd:
+            model_loss['SFN'] = train.null_loss
+
         self.GCD: Functional = Model(inputs=self.generator.input,
                                      outputs=[discriminator_to_freeze(self.generator.output),
                                               self.classifier(self.generator.output),
                                               self.feature_net(self.generator.output)])
 
-        self.GCD.compile(loss={'D': 'binary_crossentropy', 'C': 'categorical_crossentropy', 'SFN': train.euc_dist_loss},
+        self.GCD.compile(loss=model_loss,
                          optimizer='adam', metrics={'D': 'accuracy', 'C': 'accuracy'},
                          loss_weights={'D': self.weights.discriminator_loss_weight,
                                        'C': self.weights.classifier_loss_weight,
