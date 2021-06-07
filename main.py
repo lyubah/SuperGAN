@@ -105,7 +105,7 @@ def train_model(arguments: Namespace, gan_model: GanModel):
         epoch += 1
 
     if gan_model.request_save or arguments.save:
-        gan_model.save_model_to_directory(current_epoch=epoch, accuracy=generator_classifier_accuracy)
+        gan_model.save_model_to_directory()
 
     # end the foolishness
     print(Fore.RESET)

@@ -64,6 +64,8 @@ class GanModel:
         self.model_save_directory = input_file_config.save_directory
         self.request_save = input_file_config.request_save
         self.write_train_results = input_file_config.write_train_results
+        self.generator_save_location = model_data.generator_filename
+        self.discriminator_save_location = model_data.discriminator_filename
 
         y: ndarray
         y_onehot: ndarray
@@ -267,24 +269,14 @@ class GanModel:
         synthetic_features = self.feature_net.predict(syn_data, self.training_parameters.test_size, verbose=0)
         return train.compute_statistical_feature_distance(synthetic_features, self.synthetic_data_test)
 
-    def save_model_to_directory(self, current_epoch: int, accuracy: float) -> None:
+    def save_model_to_directory(self) -> None:
         """
         Saves the model to a directory.
 
-        :param current_epoch: The current epoch.
-        :param accuracy: The accuracy of the classifier.
         :return: Nothing, since this function is a void function.
         """
-        save.save_generated_data(self.generator,
-                                 current_epoch,
-                                 self.class_label,
-                                 self.model_save_directory,
-                                 accuracy)
-        save.save_discriminator_data(self.discriminator,
-                                     current_epoch,
-                                     self.class_label,
-                                     self.model_save_directory,
-                                     accuracy)
+        save.save_keras_model(self.generator, self.model_save_directory, self.generator_save_location)
+        save.save_keras_model(self.discriminator, self.model_save_directory, self.discriminator_save_location)
 
     def write_training_results(self,
                                current_epoch: int,
