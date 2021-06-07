@@ -15,44 +15,27 @@ from sklearn.model_selection import train_test_split
 # Simplest possible LSTM model. 
 def create_model(num_classes):
     model = Sequential(name = "classifier")
-    model.add(LSTM(128, activation='tanh'))
+    model.add(LSTM(100, activation='tanh'))
     model.add(Dense(num_classes, activation='softmax'))
-    model.compile(optimizer='adam', loss='mae')
+    model.compile(optimizer='rmsprop', loss='mse')
     return model
 
 
-# Evaluate a model according to both binary metrics, where none is the negative
-# class and everything else is the positive class, and a multiclass metric,
-# where accuracy between attack classes is considered.
+# Evaluate accuracy for multiclass classification
 def evaluate_model(predictions, actual):
 	n = actual.shape[0]
-	tp,tn,tc,fp,fn,fc=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+	tc, fc = (0.0, 0.0)
 	for i in range(0, n):
 		p = predictions[i]
 		a = np.argmax(actual[i])
+
 		# Did we classify correctly?
 		if p == a:
 			tc += 1.0
 		else:
 			fc += 1.0
-		# Did we at least classify binary correctly?
-		p_pos = (p != 0)
-		a_pos = (a != 0)
-		if p_pos:
-			if a_pos:
-				tp += 1.0
-			else:
-				fp += 1.0
-		else:
-			if a_pos:
-				fn += 1.0
-			else:
-				tn += 1.0
+
 	print("Total Accuracy: ", tc/(tc+fc))
-	print("Binary Accuracy: ", (tp+tn)/(tp+tn+fn+fp))
-	print("Precision: ", tp/(tp+fp))
-	print("Recall: ", tp/(tp+fn))
-	print("FPR: ", fp/(fp+tn))
 
 
 if __name__ == '__main__':
@@ -78,7 +61,7 @@ if __name__ == '__main__':
     model = create_model(num_classes)
     fitted = model.fit(
 	    x_train, y_train,
-	    epochs=30, batch_size=200,
+	    epochs=300, batch_size=100,
 	    validation_data=(x_test, y_test),
 	    verbose=2, shuffle=False
     )
