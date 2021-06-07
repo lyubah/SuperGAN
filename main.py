@@ -67,7 +67,10 @@ def train_model(arguments: Namespace, gan_model: GanModel):
     # set the generator classifier accuracy and step
     generator_classifier_accuracy = 0
     epoch = 1
-    while generator_classifier_accuracy < gan_model.training_parameters.accuracy_threshold:
+    accuracy_threshold = gan_model.training_parameters.accuracy_threshold
+    epoch_threshold = gan_model.training_parameters.epochs
+
+    while generator_classifier_accuracy < accuracy_threshold and epoch < epoch_threshold:
         # make the wrapper green, so that
         # the user feels like an elite hacker
         print(Fore.GREEN)
