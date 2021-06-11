@@ -32,15 +32,20 @@ def compute_real_to_real_similarity(input_data: np.ndarray) -> np.ndarray:
     :return: The real to real similarity as a float, not a numpy array (even though the type annotation says so).
     """
     num_segments: int = input_data.shape[0]
+    seq_length: int = input_data.shape[1]
+    num_channels: int = input_data.shape[2]
 
-    # get the segments to compare as a generator expression for O(1) memory
-    segments_to_compare = ((input_data[x], input_data[y]) for x, y in combinations(range(num_segments), r=2) if x != y)
+    # Generate all pairwise cosine similarities.
+    rtr_sims: list = []
+    reshaped: np.ndarray = input_data.reshape(num_segments, seq_length * num_channels)
 
-    # create the rtr_sim
-    rtr_sim = [cosine_similarity(fst.reshape(1, -1), snd.reshape(1, -1)) for fst, snd in segments_to_compare]
+    for i in range(num_segments):
+        for j in range(num_segments):
+            sim: np.ndarray = cosine_similarity(reshaped[j].reshape(1, -1), reshaped[i].reshape(1, -1))
+            rtr_sims.append(sim[0, 0])
 
     # return the mean
-    return np.mean(rtr_sim)
+    return np.mean(np.array(rtr_sims))
 
 
 def file_exists(path: str) -> bool:
