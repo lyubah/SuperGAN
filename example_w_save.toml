@@ -1,6 +1,6 @@
 # file data
-data_file_path = "sports_data_segmented.h5"
-classifier_path = "LSTM_classifier.h5"
+data_file_path = "sports_data_accelerometer.h5"
+classifier_path = "LSTM_accelerometer.h5"
 class_label = 0
 request_save = true
 write_train_results = true
