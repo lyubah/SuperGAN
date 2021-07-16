@@ -5,14 +5,13 @@ training generator and discriminator, generating synthetic data, and computing t
 from typing import Tuple
 
 import numpy as np
-from keras import backend as keras_backend
 from keras.engine.functional import Functional
 from keras.utils.np_utils import to_categorical
 from sklearn.metrics.pairwise import cosine_similarity
 from tensorflow import Tensor
 
 
-def null_loss(_actual_output_data: Tensor, _expected_output_data: Tensor) -> Tensor:
+def null_loss(_actual_output_data: Tensor, _expected_output_data: Tensor) -> float:
     """
     Utility function used for where a loss function is deleted by configuration.
     Both parameters are ignored.
@@ -31,19 +30,6 @@ def euc_dist_loss(actual_output_data: Tensor, expected_output_data: Tensor) -> T
     """
     return keras_backend.sqrt(keras_backend.sum(keras_backend.square(actual_output_data
                                                                      - expected_output_data), axis=-1))
-
-
-def compute_statistical_feature_distance(real_features: np.ndarray, synthetic_features: np.ndarray) -> np.ndarray:
-    """
-    Utility function that computes the average statistical feature distance during training.
-
-    :param real_features: A numpy array of real features.
-    :param synthetic_features: A numpy array of synthetic features.
-    :return: A numpy array the represents the statistical feature distance.
-    """
-    distance_vector: np.ndarray = np.sqrt(np.sum(np.square(real_features - synthetic_features), axis=1))
-    SFD: np.ndarray = np.mean(distance_vector)
-    return SFD
 
 
 def generate_input_noise(batch_size: int, latent_dim: int, time_steps: int) -> np.ndarray:

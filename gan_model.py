@@ -11,6 +11,7 @@ import input_module
 import models
 import saving_module as save
 import training_module as train
+import model_critique_functions as critique
 from data.model_data_storage import TrainingParameters, Weights, Names, ModelData, Empty
 from input_module import InputModuleConfiguration
 
@@ -177,7 +178,7 @@ class GanModel:
         for discriminator_layer in discriminator_to_freeze.layers:
             discriminator_layer.trainable = False
 
-        model_loss: dict = {'D': 'binary_crossentropy', 'C': 'categorical_crossentropy', 'SFN': train.euc_dist_loss}
+        model_loss: dict = {'D': 'binary_crossentropy', 'C': 'categorical_crossentropy', 'SFN': critique.euc_dist_loss}
 
         if self.ignore_classifier:
             model_loss['C'] = train.null_loss
@@ -267,7 +268,7 @@ class GanModel:
         :return: The statistical feature distance as a numpy array.
         """
         synthetic_features = self.feature_net.predict(syn_data, self.training_parameters.test_size, verbose=0)
-        return train.compute_statistical_feature_distance(synthetic_features, self.synthetic_data_test)
+        return model_critic_functions.compute_statistical_feature_distance(synthetic_features, self.synthetic_data_test)
 
     def save_model_to_directory(self) -> None:
         """

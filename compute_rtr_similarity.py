@@ -31,7 +31,7 @@ def compute_real_to_real_similarity(input_data: np.ndarray) -> np.ndarray:
 
     :return: The real to real similarity as a float, not a numpy array (even though the type annotation says so).
     """
-    num_segments: int = input_data.shape[0]
+    num_segments: int = len(input_data)
     seq_length: int = input_data.shape[1]
     num_channels: int = input_data.shape[2]
 
@@ -107,7 +107,7 @@ def main() -> None:
     file_name: str = cli_args.filename
 
     rtr_similarity = read_h5_file(file_name, cli_args.class_label)
-    print(f'RTR similarity (Real to real similarity): {rtr_similarity}')
+    print(f'RTR similarity (real-to-real similarity): {rtr_similarity}')
 
 
 if __name__ == '__main__':

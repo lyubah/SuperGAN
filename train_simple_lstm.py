@@ -3,7 +3,6 @@ Generates a trained LSTM classifier for a dataset to use with SuperGAN
 Usage: python3 train_simple_lstm.py dataset_name.h5 classifier_name.h5
 """
 
-
 import sys
 import h5py
 import numpy as np
@@ -13,29 +12,29 @@ from sklearn.model_selection import train_test_split
 
 
 # Simplest possible LSTM model. 
-def create_model(num_classes):
-    model = Sequential(name = "classifier")
-    model.add(LSTM(100, activation='tanh'))
-    model.add(Dense(num_classes, activation='softmax'))
-    model.compile(optimizer='rmsprop', loss='mse')
-    return model
+def create_model(number_of_classes: int):
+    lstm_model = Sequential(name="classifier")
+    lstm_model.add(LSTM(100, activation='tanh'))
+    lstm_model.add(Dense(number_of_classes, activation='softmax'))
+    lstm_model.compile(optimizer='rmsprop', loss='mse')
+    return lstm_model
 
 
 # Evaluate accuracy for multiclass classification
 def evaluate_model(predictions, actual):
-	n = actual.shape[0]
-	tc, fc = (0.0, 0.0)
-	for i in range(0, n):
-		p = predictions[i]
-		a = np.argmax(actual[i])
+    n = actual.shape[0]
+    tc, fc = (0.0, 0.0)
+    for i in range(0, n):
+        p = predictions[i]
+        a = np.argmax(actual[i])
 
-		# Did we classify correctly?
-		if p == a:
-			tc += 1.0
-		else:
-			fc += 1.0
+        # Did we classify correctly?
+        if p == a:
+            tc += 1.0
+        else:
+            fc += 1.0
 
-	print("Total Accuracy: ", tc/(tc+fc))
+    print("Total Accuracy: ", tc / (tc + fc))
 
 
 if __name__ == '__main__':
@@ -51,19 +50,19 @@ if __name__ == '__main__':
 
     # Split dataset into 30% testing, 70% training
     x_train, x_test, y_train, y_test = train_test_split(
-	    np.asarray(x),
-	    np.asarray(y),
-	    test_size = 0.3
+        np.asarray(x),
+        np.asarray(y),
+        test_size=0.3
     )
 
     # Train model on training data, validate on testing data
     num_classes = y.shape[1]
     model = create_model(num_classes)
     fitted = model.fit(
-	    x_train, y_train,
-	    epochs=300, batch_size=100,
-	    validation_data=(x_test, y_test),
-	    verbose=2, shuffle=False
+        x_train, y_train,
+        epochs=300, batch_size=100,
+        validation_data=(x_test, y_test),
+        verbose=2, shuffle=False
     )
 
     # Evaluate, so we know the model is decent
