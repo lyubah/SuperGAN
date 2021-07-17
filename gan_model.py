@@ -268,7 +268,7 @@ class GanModel:
         :return: The statistical feature distance as a numpy array.
         """
         synthetic_features = self.feature_net.predict(syn_data, self.training_parameters.test_size, verbose=0)
-        return model_critic_functions.compute_statistical_feature_distance(synthetic_features, self.synthetic_data_test)
+        return critique.compute_statistical_feature_distance(synthetic_features, self.synthetic_data_test)
 
     def save_model_to_directory(self) -> None:
         """
