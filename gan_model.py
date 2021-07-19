@@ -12,6 +12,7 @@ import models
 import saving_module as save
 import training_module as train
 import model_critique_functions as critique
+import plotting_module
 from data.model_data_storage import TrainingParameters, Weights, Names, ModelData, Empty
 from input_module import InputModuleConfiguration
 
@@ -305,6 +306,13 @@ class GanModel:
                            generator_classifier_acc,
                            mean_rts_similarity,
                            mean_sts_similarity)
+
+    def plot_data(self):
+        plotting_module.display_grid_plot(input_data=self.input_data,
+                                          seq_length=self.seq_length,
+                                          class_name=self.class_label,
+                                          sampling_rate=1,
+                                          real=False)
 
     @staticmethod
     def _load_pretrained_model(generator_path: str,

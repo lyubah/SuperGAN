@@ -3,13 +3,12 @@
 Model critique functions.
 
 """
-from typing import Optional, Any
-
+import numpy as np
 import tensorflow as tf
 from keras import backend
 from tensorflow_model_remediation.common.types import TensorType
 from tensorflow_model_remediation.min_diff.losses import MMDLoss
-import numpy as np
+from typing import Optional, Any
 
 
 def maximal_mean_discrepancy(input_tensor: TensorType,
@@ -19,22 +18,28 @@ def maximal_mean_discrepancy(input_tensor: TensorType,
                              kernel='gaussian') -> int:
     """
     Computes the maximum mean discrepancy. Note that the
-    lower the result, the more evidence that the distributions are the same. Tensorflow's code can
-    be found here:
+    lower the result, the more evidence that the distributions are the same.
+    Tensorflow's code can be found here:
 
     https://github.com/tensorflow/model-remediation/blob/v0.1.5/tensorflow_model_remediation/min_diff/losses/mmd_loss.py#L27-L121
 
     :param input_tensor: The membership data, which is a tensor type
     (you probably want to input a tensor).
-    :param output_tensor: The predictions, which is a tensor type. (you probably want to input a tensor)
-    :param predictions_transform: The transformation function, we default to sigmoid.
+    :param output_tensor: The predictions, which is a tensor type. (you probably
+    want to input a tensor)
+    :param predictions_transform: The transformation function, we default to
+    sigmoid.
     :param sample_weight: The sample weight.
     :param kernel: The kernel that is being used.
     :returns: The maximum mean discrepancy.
 
     """
-    mmd_loss = MMDLoss(kernel=kernel, predictions_transform=predictions_transform, name=None)
-    return mmd_loss.call(membership=input_tensor, predictions=output_tensor, sample_weight=sample_weight)
+    mmd_loss = MMDLoss(kernel=kernel,
+                       predictions_transform=predictions_transform,
+                       name='mmd_loss')
+    return mmd_loss.call(membership=input_tensor,
+                         predictions=output_tensor,
+                         sample_weight=sample_weight)
 
 
 def wasserstein_distance(y_true: TensorType,
@@ -53,7 +58,8 @@ def wasserstein_distance(y_true: TensorType,
     return backend.mean(y_true * y_pred)
 
 
-def euc_dist_loss(actual_output_data: TensorType, expected_output_data: TensorType) -> TensorType:
+def euc_dist_loss(actual_output_data: TensorType,
+                  expected_output_data: TensorType) -> TensorType:
     """
     Utility function that computes the euclidean distance (SFD) loss
     within the Keras optimization function.
@@ -62,10 +68,13 @@ def euc_dist_loss(actual_output_data: TensorType, expected_output_data: TensorTy
     :param expected_output_data: The expected output data as a Tensor.
     :return: The euclidean distance loss as a Tensor.
     """
-    return backend.sqrt(backend.sum(backend.square(actual_output_data - expected_output_data), axis=-1))
+    return backend.sqrt(
+        backend.sum(backend.square(actual_output_data - expected_output_data),
+                    axis=-1))
 
 
-def compute_statistical_feature_distance(real_features: np.ndarray, synthetic_features: np.ndarray) -> np.ndarray:
+def compute_statistical_feature_distance(real_features: np.ndarray,
+                                         synthetic_features: np.ndarray) -> np.ndarray:
     """
     Utility function that computes the average statistical feature distance during training.
 
@@ -73,6 +82,7 @@ def compute_statistical_feature_distance(real_features: np.ndarray, synthetic_fe
     :param synthetic_features: A numpy array of synthetic features.
     :return: A numpy array the represents the statistical feature distance.
     """
-    distance_vector: np.ndarray = np.sqrt(np.sum(np.square(real_features - synthetic_features), axis=1))
+    distance_vector: np.ndarray = np.sqrt(
+        np.sum(np.square(real_features - synthetic_features), axis=1))
     SFD: np.ndarray = np.mean(distance_vector)
     return SFD
