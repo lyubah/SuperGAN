@@ -307,13 +307,6 @@ class GanModel:
                            mean_rts_similarity,
                            mean_sts_similarity)
 
-    def plot_data(self):
-        plotting_module.display_grid_plot(input_data=self.input_data,
-                                          seq_length=self.seq_length,
-                                          class_name=self.class_label,
-                                          sampling_rate=1,
-                                          real=False)
-
     @staticmethod
     def _load_pretrained_model(generator_path: str,
                                discriminator_path: str,

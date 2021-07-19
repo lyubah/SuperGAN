@@ -86,7 +86,6 @@ def train_model(arguments: Namespace, gan_model: GanModel):
     discriminator_accuracies = []
     classifier_accuracies = []
     generator_tricking_accuracies = []
-    synthetic_data = None
 
     while generator_classifier_accuracy < accuracy_threshold and epoch < epoch_threshold:
         # make the wrapper green, so that
@@ -130,8 +129,7 @@ def train_model(arguments: Namespace, gan_model: GanModel):
     if gan_model.request_save or arguments.save:
         gan_model.save_model_to_directory()
 
-    if arguments.show_plot_results and synthetic_data is not None:
-        # gan_model.plot_data(synthetic_data)
+    if arguments.show_plot_results:
         plot_results(epochs,
                      classifier_accuracies,
                      discriminator_accuracies,
