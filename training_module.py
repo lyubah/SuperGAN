@@ -9,9 +9,13 @@ from keras.engine.functional import Functional
 from keras.utils.np_utils import to_categorical
 from sklearn.metrics.pairwise import cosine_similarity
 from tensorflow import Tensor
+from compute_similarity_metrics import \
+    compute_syn_to_syn_similarity, \
+    compute_real_to_syn_similarity
 
 
-def null_loss(_actual_output_data: Tensor, _expected_output_data: Tensor) -> float:
+def null_loss(_actual_output_data: Tensor,
+              _expected_output_data: Tensor) -> float:
     """
     Utility function used for where a loss function is deleted by configuration.
     Both parameters are ignored.
@@ -19,7 +23,8 @@ def null_loss(_actual_output_data: Tensor, _expected_output_data: Tensor) -> flo
     return 0.0
 
 
-def euc_dist_loss(actual_output_data: Tensor, expected_output_data: Tensor) -> Tensor:
+def euc_dist_loss(actual_output_data: Tensor,
+                  expected_output_data: Tensor) -> Tensor:
     """
     Utility function that computes the euclidean distance (SFD) loss
     within the Keras optimization function.
@@ -28,11 +33,14 @@ def euc_dist_loss(actual_output_data: Tensor, expected_output_data: Tensor) -> T
     :param expected_output_data: The expected output data as a Tensor.
     :return: The euclidean distance loss as a Tensor.
     """
-    return keras_backend.sqrt(keras_backend.sum(keras_backend.square(actual_output_data
-                                                                     - expected_output_data), axis=-1))
+    return keras_backend.sqrt(
+        keras_backend.sum(keras_backend.square(actual_output_data
+                                               - expected_output_data),
+                          axis=-1))
 
 
-def generate_input_noise(batch_size: int, latent_dim: int, time_steps: int) -> np.ndarray:
+def generate_input_noise(batch_size: int, latent_dim: int,
+                         time_steps: int) -> np.ndarray:
     """
     Function that generates random input by sampling from a normal distribution, note that the input
     varies at each time-step.
@@ -42,11 +50,13 @@ def generate_input_noise(batch_size: int, latent_dim: int, time_steps: int) -> n
     :param time_steps: The time-steps.
     :return: Input noise.
     """
-    return np.reshape(np.array(np.random.normal(0, 1, latent_dim * time_steps * batch_size)),
-                      (batch_size, time_steps, latent_dim))
+    return np.reshape(
+        np.array(np.random.normal(0, 1, latent_dim * time_steps * batch_size)),
+        (batch_size, time_steps, latent_dim))
 
 
-def generate_synthetic_data(size: int, generator: Functional, latent_dim: int, time_steps: int) -> np.ndarray:
+def generate_synthetic_data(size: int, generator: Functional, latent_dim: int,
+                            time_steps: int) -> np.ndarray:
     """
     A utility function for generating a synthetic data set.
 
@@ -82,7 +92,8 @@ def train_generator(batch_size: int,
     :return: The loss as a list.
     """
 
-    noise: np.ndarray = generate_input_noise(batch_size, latent_dim, input_data.shape[1])
+    noise: np.ndarray = generate_input_noise(batch_size, latent_dim,
+                                             input_data.shape[1])
 
     # labels related to whether data is real or synthetic
     real_synthetic_labels: np.ndarray = np.ones([batch_size, 1])
@@ -90,7 +101,9 @@ def train_generator(batch_size: int,
     # labels related to the class of the data
     class_labels: int = to_categorical([class_label] * batch_size,
                                        num_classes=num_labels)
-    loss: list = model.train_on_batch(noise, [real_synthetic_labels, class_labels, actual_features])
+    loss: list = model.train_on_batch(noise,
+                                      [real_synthetic_labels, class_labels,
+                                       actual_features])
 
     return loss
 
@@ -112,31 +125,54 @@ def train_discriminator(batch_size: int,
     """
 
     # generates the synthetic data
-    noise: np.ndarray = generate_input_noise(batch_size, latent_dim, input_data.shape[1])
-    synthetic_data: np.ndarray = generator_model.predict(noise)
+    synthetic_data: np.ndarray = generate_synthetic_data(batch_size,
+                                                         generator_model,
+                                                         latent_dim,
+                                                         input_data.shape[1])
 
     # selects a random batch of real data
-    indices_toKeep: np.ndarray = np.random.choice(input_data.shape[0], batch_size, replace=False)
+    indices_toKeep: np.ndarray = np.random.choice(input_data.shape[0],
+                                                  batch_size,
+                                                  replace=False)
     real_data: np.ndarray = input_data[indices_toKeep]
 
-    # makes the full input and labels and feeds the aforementioned into the network
+    # makes the full input and labels and
+    # feeds the aforementioned into the network
     full_input: np.ndarray = np.concatenate((real_data, synthetic_data))
-    real_synthetic_label: np.ndarray = np.ones([2 * batch_size, 1])
+    real_synthetic_label: np.ndarray = np.ones((2 * batch_size, 1))
     real_synthetic_label[batch_size:, :] = 0
 
     # trains the discriminator and returns the loss
-    loss: list = discriminator_model.train_on_batch(full_input, real_synthetic_label)
+    loss: list = discriminator_model.train_on_batch(full_input,
+                                                    real_synthetic_label)
     return loss
+
+
+def train_tstr_classifier(synthetic_data: np.ndarray,
+                          classifier: Functional,
+                          class_label: int):
+    """
+    Trains a second classifier for use with the TSTR metric.
+
+    :param synthetic_data: A numpy array of synthetic data.
+    :param classifier: A keras classifier.
+    :param class_label: The class label.
+    """
+    # thinking about how I would actually train this, usually you
+    # would fit to an X and a y_onehot
+    print(synthetic_data.shape)
+    print(class_label)
 
 
 def compute_similarity_metrics(synthetic_input_data: np.ndarray,
                                real_input_data: np.ndarray,
                                batch_size: int,
                                real_synthetic_ratio: int,
-                               synthetic_synthetic_ratio: int) -> Tuple[np.ndarray, np.ndarray]:
+                               synthetic_synthetic_ratio: int) -> \
+        Tuple[np.ndarray, np.ndarray]:
     """
-    Function for computing the mean rts and sts similarity, which is in turn used to help monitor
-    the generator training.
+    Function for computing the mean rts and sts similarity, which is in turn
+    used to help monitor the generator training.
 
     :param synthetic_input_data: The synthetic input data as a numpy array.
     :param real_input_data: The real input data as a numpy array.
@@ -147,47 +183,12 @@ def compute_similarity_metrics(synthetic_input_data: np.ndarray,
     the mean rts similarity and the mean sts similarity in the following form
     (numpy array, numpy array)
     """
-
-    # denote necessary features and information
-    # regarding the data shape
-    num_segments: int = len(real_input_data)
-    seq_length: int = real_input_data.shape[1]
-    num_channels: int = real_input_data.shape[2]
-    RTS_sims: list = []
-    STS_sims: list = []
-
-    # reshape the data into two dimensions
-    real_input_data: np.ndarray = real_input_data.reshape(num_segments, seq_length * num_channels)
-    synthetic_input_data: np.ndarray = synthetic_input_data.reshape(batch_size, seq_length * num_channels)
-
-    # for each fake segment, calculate its similarity to a user defined number of real segments
-    for i in range(batch_size):
-        indices_toCompare: np.ndarray = np.random.choice(num_segments, real_synthetic_ratio, replace=False)
-        for j in indices_toCompare:
-            sim: np.ndarray = cosine_similarity(
-                real_input_data[j].reshape(1, -1), synthetic_input_data[i].reshape(1, -1))
-            sim: np.float = sim[0, 0]
-            RTS_sims.append(sim)
-
-    # gets the index of one random fake sample
-    index: np.ndarray = np.random.choice(len(synthetic_input_data), 1)
-
-    # computes the similarity between the user defined number
-    # of synthetic segments to test for generator collapse.
-    chosen_synthetic_value = synthetic_input_data[index]
-
-    # remove this sample so we dont compare to itself
-    synthetic_input_data = np.delete(synthetic_input_data, index, axis=0)
-    synthetic_toCompare = synthetic_input_data[np.random.choice(len(synthetic_input_data), synthetic_synthetic_ratio)]
-
-    for other_synthetic in synthetic_toCompare:
-        sim2: np.ndarray = cosine_similarity(chosen_synthetic_value, other_synthetic.reshape(1, -1))
-        sim2: np.float = sim2[0, 0]
-        STS_sims.append(sim2)
-
-    RTS_sims: np.ndarray = np.array(RTS_sims)
-    STS_sims: np.ndarray = np.array(STS_sims)
-    mean_RTS_sim = np.mean(RTS_sims)
-    mean_STS_sim = np.mean(STS_sims)
-
-    return mean_RTS_sim, mean_STS_sim
+    return compute_real_to_syn_similarity(real_input_data,
+                                          synthetic_input_data,
+                                          batch_size,
+                                          real_synthetic_ratio), \
+        compute_syn_to_syn_similarity(synthetic_input_data,
+                                      synthetic_synthetic_ratio,
+                                      batch_size,
+                                      real_input_data.shape[1],
+                                      real_input_data.shape[2])

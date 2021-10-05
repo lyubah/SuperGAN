@@ -15,6 +15,7 @@ class TrainingParameters:
     batch_size: int
     test_size: int
     real_synthetic_ratio: int
+    real_real_ratio: int
     synthetic_synthetic_ratio: int
     discriminator_learning_rate: float
     accuracy_threshold: float
@@ -28,7 +29,7 @@ class Weights:
     """
     discriminator_loss_weight: int
     classifier_loss_weight: int
-    sfd_loss_weight: int
+    sfd_loss_weight: int4
 
 
 @dataclass(frozen=True)
@@ -50,4 +51,4 @@ class ModelData:
 class Empty(ModelData):
 
     def __init__(self):
-        pass
+        super().__init__()

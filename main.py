@@ -8,6 +8,7 @@ from typing import Tuple
 
 import config_file_parser
 import saving_module
+import training_module
 from gan_model import GanModel
 from plotting_module import plot_results
 
@@ -56,7 +57,8 @@ def generate_data_samples(arguments: Namespace, gan_model: GanModel):
 def compute_performance_metrics(gan_model: GanModel) -> \
         Tuple[ndarray, ndarray, ndarray, float]:
     # GENERATE SYNTHETIC DATA AND GET CLASSIFIER ACCURACY
-    synthetic_data, generator_classifier_accuracy = gan_model.generate_synthetic_data()
+    synthetic_data, generator_classifier_accuracy = \
+        gan_model.generate_synthetic_data()
     print(
         f'Classifier accuracy for synthetic data: {generator_classifier_accuracy}')
 
@@ -72,7 +74,10 @@ def compute_performance_metrics(gan_model: GanModel) -> \
     # not entirely sure why this is being computed, but maybe its important
     one_segment_real = gan_model.compute_one_segment_real()
 
-    return synthetic_data, mean_RTS_sim, mean_STS_sim, generator_classifier_accuracy
+    return synthetic_data, \
+        mean_RTS_sim, \
+        mean_STS_sim, \
+        generator_classifier_accuracy
 
 
 def train_model(arguments: Namespace, gan_model: GanModel):

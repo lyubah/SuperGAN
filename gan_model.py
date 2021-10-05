@@ -10,11 +10,14 @@ from sklearn.metrics import accuracy_score
 import input_module
 import models
 import saving_module as save
+import train_simple_lstm
+import training_module
 import training_module as train
 import model_critique_functions as critique
 import plotting_module
 from data.model_data_storage import TrainingParameters, Weights, Names, ModelData, Empty
 from input_module import InputModuleConfiguration
+from training_module import train_tstr_classifier
 
 
 class GanModel:
@@ -74,7 +77,8 @@ class GanModel:
         self.input_data, y, y_onehot = input_module.load_data(input_file_config.data_file_path, self.class_label)
 
         # load the pre-trained classifier (note that we are not preparing it for training by compiling it)
-        self.classifier = load_model(input_file_config.classifier_path, compile=False)
+        self.classifier = load_model(input_file_config.classifier_path,
+                                     compile=False)
         self.classifier._name = self.names.classifier_name
 
         # set variables regarding the data shape
@@ -83,6 +87,10 @@ class GanModel:
         self.num_channels = self.input_data.shape[2]
         self.input_shape = (self.seq_length, self.num_channels)
         self.num_classes = y_onehot.shape[1]
+
+        self.metric_classifier = train_simple_lstm.\
+            create_classifier_model(self.num_classes)
+        self.metric_classifier._name = "TSTR Classifier"
 
         # check whether or not there are models requested in the config file
         if isinstance(model_data, Empty) or not model_data.exists:
@@ -246,6 +254,12 @@ class GanModel:
 
         return syn_data, gen_class_acc
 
+    def train_tstr_classifier(self, synthetic_data: np.ndarray):
+        train_tstr_classifier(synthetic_data=synthetic_data,
+                              classifier=self.metric_classifier,
+                              class_label=self.class_label)
+
+
     def compute_rts_sts(self, syn_data: ndarray) -> Tuple[ndarray, ndarray]:
         """
         Computes the similarity metrics.
@@ -258,8 +272,8 @@ class GanModel:
                                                 real_input_data=self.input_data,
                                                 batch_size=self.training_parameters.test_size,
                                                 real_synthetic_ratio=self.training_parameters.real_synthetic_ratio,
-                                                synthetic_synthetic_ratio=self.training_parameters.
-                                                synthetic_synthetic_ratio)
+                                                synthetic_synthetic_ratio=
+                                                self.training_parameters.synthetic_synthetic_ratio)
 
     def compute_statistical_feature_distance(self, syn_data: ndarray) -> ndarray:
         """

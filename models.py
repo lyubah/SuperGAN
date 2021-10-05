@@ -11,7 +11,7 @@ from keras import backend as keras_backend
 from keras.engine.keras_tensor import KerasTensor
 from keras.layers import Dense, LSTM, Dropout, Input, Lambda
 from keras.models import Model, Functional
-from keras.optimizers import SGD
+from tensorflow.keras.optimizers import SGD
 from keras.type.types import Layer
 from tensorflow import Tensor
 
@@ -128,3 +128,19 @@ def compile_discriminator_model(discriminator: Functional, learning_rate) -> Fun
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
     model.summary()
     return model
+
+
+def create_tstr_classifier(number_of_classes: int):
+    """
+    Creates the simplest possible LSTM Model to make a classifier
+    for TSTR.
+
+    :param number_of_classes: The number of classes to add
+    :return: A new classifier
+    """
+    lstm_model = Sequential(name="classifier")
+    lstm_model.add(LSTM(100, activation='tanh'))
+    lstm_model.add(Dense(number_of_classes, activation='softmax'))
+    lstm_model.compile(optimizer='rmsprop', loss='mse')
+    return lstm_model
+

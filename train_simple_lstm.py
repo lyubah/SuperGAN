@@ -11,8 +11,13 @@ from keras.layers import Dense, LSTM
 from sklearn.model_selection import train_test_split
 
 
-# Simplest possible LSTM model. 
-def create_model(number_of_classes: int):
+def create_classifier_model(number_of_classes: int):
+    """
+    Creates the simplest possible LSTM Model for a classifier.
+
+    :param number_of_classes: The number of classes to add
+    :return:
+    """
     lstm_model = Sequential(name="classifier")
     lstm_model.add(LSTM(100, activation='tanh'))
     lstm_model.add(Dense(number_of_classes, activation='softmax'))

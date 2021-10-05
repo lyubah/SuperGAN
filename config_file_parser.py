@@ -5,7 +5,8 @@ Utilities to parse the config file.
 import configparser
 import os
 
-from data.model_data_storage import Weights, TrainingParameters, Names, ModelData, Empty
+from data.model_data_storage import Weights, \
+    TrainingParameters, Names, ModelData, Empty
 
 
 class ModelConfigParser:
@@ -35,6 +36,7 @@ class ModelConfigParser:
             'batch_size': '25',
             'test_size': '100',
             'real_synthetic_ratio': '5',
+            'real_real_ratio': '10',
             'synthetic_synthetic_ratio': '10',
             'discriminator_learning_rate': '0.01',
             'accuracy_threshold': '0.8',
@@ -83,12 +85,17 @@ class ModelConfigParser:
             batch_size: int = int(key.get('batch_size', '25'))
             test_size: int = int(key.get('test_size', '100'))
             real_synthetic_ratio: int = int(key.get('real_synthetic_ratio', '5'))
+            real_real_ratio: int = int(key.get('real_real_ratio', '10'))
             synthetic_synthetic_ratio: int = int(key.get('synthetic_synthetic_ratio', '10'))
             discriminator_learning_rate: float = float(key.get('discriminator_learning_rate', '0.01'))
             accuracy_threshold: float = float(key.get('accuracy_threshold', '0.8'))
             num_features: int = int(key.get('num_features', '9'))
-            return TrainingParameters(latent_dimension=latent_dimension, epochs=epochs, batch_size=batch_size,
-                                      test_size=test_size, real_synthetic_ratio=real_synthetic_ratio,
+            return TrainingParameters(latent_dimension=latent_dimension,
+                                      epochs=epochs,
+                                      batch_size=batch_size,
+                                      test_size=test_size,
+                                      real_synthetic_ratio=real_synthetic_ratio,
+                                      real_real_ratio=real_real_ratio,
                                       synthetic_synthetic_ratio=synthetic_synthetic_ratio,
                                       discriminator_learning_rate=discriminator_learning_rate,
                                       accuracy_threshold=accuracy_threshold, num_features=num_features)
@@ -100,11 +107,14 @@ class ModelConfigParser:
             :param key: A key that represents a map of weights.
             :return: A dataclass of parsed weights.
             """
-            discriminator_loss_weight: int = int(key.get('discriminator_loss_weight', '1'))
-            classifier_loss_weight: int = int(key.get('classifier_loss_weight', '1'))
+            discriminator_loss_weight: int = \
+                int(key.get('discriminator_loss_weight', '1'))
+            classifier_loss_weight: int = \
+                int(key.get('classifier_loss_weight', '1'))
             sfd_loss_weight: int = int(key.get('sfd_loss_weight', '1'))
             return Weights(discriminator_loss_weight=discriminator_loss_weight,
-                           classifier_loss_weight=classifier_loss_weight, sfd_loss_weight=sfd_loss_weight)
+                           classifier_loss_weight=classifier_loss_weight,
+                           sfd_loss_weight=sfd_loss_weight)
 
         def parse_names(key: configparser.SectionProxy) -> Names:
             """
@@ -131,7 +141,8 @@ class ModelConfigParser:
                 exists = True
 
             # return none if any of the aforementioned are none
-            if discriminator_filename is None or generator_filename is None or directory is None:
+            if discriminator_filename is None or generator_filename is None \
+                    or directory is None:
                 return Empty()
             else:
                 return ModelData(discriminator_filename=discriminator_filename,
@@ -141,7 +152,8 @@ class ModelConfigParser:
 
         model_parser = configparser.ConfigParser()
         model_parser.read('model.conf')
-        training_parameters: TrainingParameters = parse_training_parameters(model_parser['TRAINING_PARAMETERS'])
+        training_parameters: TrainingParameters \
+            = parse_training_parameters(model_parser['TRAINING_PARAMETERS'])
         weights: Weights = parse_weights(model_parser['WEIGHTS'])
         names: Names = parse_names(model_parser['NAMES'])
         model_data: ModelData = parse_models(model_parser['MODELS'])
