@@ -6,6 +6,23 @@ This repository contains code related to the SuperGAN (supervised generative adv
 
 ## How to run
 
+### On initial run
+
+This project uses a Python virtual environment. In order to utilize this feature and
+avoid package headaches, please open the directory in a terminal.
+
+Afterwards, run the following command: `python3 -m venv supergan_env`
+
+Then, once inside of this directory, execute the following command: `source supergan_env/bin/activate`. This will make it
+so that you are running Python in its own little virtual environment.
+
+Next, **when inside** the virtual environment run the script using `python setup.py`, which will make
+sure that everything is in order and install the relevant packages
+
+### On every run afterwards
+
+Use `source supergan_env/bin/activate` and then run everything inside of that environment.
+
 #### Text file for submitting test cases:
 
 There are two configuration files SuperGAN reads.
