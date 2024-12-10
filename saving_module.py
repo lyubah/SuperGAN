@@ -6,7 +6,9 @@ import os
 
 import h5py
 import numpy as np
-from keras.models import Functional
+# from keras.models import Functional
+from keras.engine.functional import Functional
+
 
 
 def save_generated_data(model: Functional,

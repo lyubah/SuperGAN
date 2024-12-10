@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "main.py", line 172, in <module>
+    main()
+  File "main.py", line 155, in main
+    gan_model = GanModel(training_parameters,
+  File "/Users/Lerberber/Desktop/Bhat/SuperGans/gan_model.py", line 67, in __init__
+    input_file_config: InputModuleConfiguration = input_module.parse_input_file(config)
+  File "/Users/Lerberber/Desktop/Bhat/SuperGans/input_module.py", line 49, in parse_input_file
+    raise IOError
+OSError

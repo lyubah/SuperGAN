@@ -29,7 +29,7 @@ class Weights:
     """
     discriminator_loss_weight: int
     classifier_loss_weight: int
-    sfd_loss_weight: int4
+    sfd_loss_weight: int
 
 
 @dataclass(frozen=True)

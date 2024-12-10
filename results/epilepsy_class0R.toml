@@ -1,0 +1,4 @@
+data_file_path = "/Users/Lerberber/Desktop/Bhat/SuperGans/supergan_data.h5"
+classifier_path = "/Users/Lerberber/Desktop/Bhat/SuperGans/CNN1_scripts/Datasets/Epilepsy_1DCNN_extended.ckpt"
+class_label = "0"
+write_train_results = true
